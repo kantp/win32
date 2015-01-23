@@ -102,6 +102,7 @@ type FileAttributeOrFlag   = UINT
  , fILE_ATTRIBUTE_NORMAL        = FILE_ATTRIBUTE_NORMAL
  , fILE_ATTRIBUTE_TEMPORARY     = FILE_ATTRIBUTE_TEMPORARY
  , fILE_ATTRIBUTE_COMPRESSED    = FILE_ATTRIBUTE_COMPRESSED
+ , fILE_ATTRIBUTE_REPARSE_POINT = FILE_ATTRIBUTE_REPARSE_POINT
  , fILE_FLAG_WRITE_THROUGH      = FILE_FLAG_WRITE_THROUGH
  , fILE_FLAG_OVERLAPPED         = FILE_FLAG_OVERLAPPED
  , fILE_FLAG_NO_BUFFERING       = FILE_FLAG_NO_BUFFERING
@@ -462,6 +463,12 @@ getFileAttributes name =
     c_GetFileAttributes c_name
 foreign import WINDOWS_CCONV unsafe "windows.h GetFileAttributesW"
   c_GetFileAttributes :: LPCTSTR -> IO FileAttributeOrFlag
+
+isJunctionPoint :: String -> IO Bool
+isJunctionPoint name = do
+  attributes <- getFileAttributes name
+  let mask = fILE_ATTRIBUTE_REPARSE_POINT .|. fILE_ATTRIBUTE_HIDDEN .|. fILE_ATTRIBUTE_SYSTEM
+  return $ attributes .&. mask == mask
 
 getFileAttributesExStandard :: String -> IO WIN32_FILE_ATTRIBUTE_DATA
 getFileAttributesExStandard name =  alloca $ \res -> do
